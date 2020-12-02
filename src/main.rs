@@ -1,5 +1,11 @@
+#![feature(min_const_generics)]
+
+use day::Day;
+use one::DayOne;
+
+mod day;
 mod one;
 
 fn main() {
-    println!("#1.a >> {}", one::part_a(include_str!("input/one_a.txt")));
+    DayOne::new(include_str!("input/one.txt")).print_solutions(1);
 }

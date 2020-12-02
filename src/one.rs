@@ -1,31 +1,59 @@
-fn find_entries_and_multiply(numbers: &[isize]) -> Option<isize> {
-    let size = numbers.len();
-    for i in 0..size {
-        let x_i = numbers[i];
-        for j in i..size {
-            let x_j = numbers[j];
-            if x_i + x_j == 2020 { return Some(x_i * x_j) }
-        }
-    }
-    None
+use crate::day::Day;
+
+pub struct DayOne {
+    numbers: Vec<isize>
 }
 
-pub fn part_a(input: &str) -> isize {
-    let numbers: Vec<isize> = input.lines()
-        .filter_map(|x| x.parse::<isize>().ok())
-        .collect();
-    find_entries_and_multiply(&numbers).unwrap()
+impl DayOne {
+    pub fn new(input: &str) -> Self {
+        let numbers: Vec<isize> = input.lines()
+            .filter_map(|x| x.parse::<isize>().ok())
+            .collect();
+        DayOne { numbers }
+    }
+
+    fn recurse(&self, offset: usize, entries: &mut [isize], depth: usize) -> Option<isize> {
+        (offset..self.numbers.len())
+            .find_map(|offset| {
+                
+                let sum: isize = entries[..depth].iter().sum();
+                if sum > 2020 { return None }
+
+                if depth >= entries.len() {
+                    return match sum {
+                        2020 => Some(entries[..depth].iter().product()),
+                        _ => None
+                    };
+                }
+
+                entries[depth] = self.numbers[offset];
+                self.recurse(offset + 1, entries, depth + 1)
+
+            })
+    }
+    
+}
+
+impl Day<isize, isize> for DayOne {
+
+    fn part_a(&self) -> isize {
+        self.recurse(0, &mut [0isize; 2], 0).unwrap()
+    }
+
+    fn part_b(&self) -> isize {
+        self.recurse(0, &mut [0isize; 3], 0).unwrap()
+    }
+
 }
 
 #[test]
 fn example_one() {
-    let numbers = [
-        1721,
-        979,
-        366,
-        299,
-        675,
-        1456,
-    ];
-    assert_eq!(find_entries_and_multiply(&numbers), Some(514579));
+    let day = DayOne::new(include_str!("input/one_test.txt"));
+    assert_eq!(day.part_a(), 514579);
+}
+
+#[test]
+fn example_two() {
+    let day = DayOne::new(include_str!("input/one_test.txt"));
+    assert_eq!(day.part_b(), 241861950);
 }
