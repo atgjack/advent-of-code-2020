@@ -1,21 +1,4 @@
 
-#[aoc_generator(day1)]
-pub fn input_generator(input: &str) -> Vec<isize> {
-    input.lines()
-        .filter_map(|x| x.parse::<isize>().ok())
-        .collect()
-}
-
-#[aoc(day1, part1)]
-pub fn solve_part_one(input: &[isize]) -> isize {
-    recurse(input, 0, &mut [0isize; 2], 0).unwrap()
-}
-
-#[aoc(day1, part2)]
-pub fn solve_part_two(input: &[isize]) -> isize {
-    recurse(input, 0, &mut [0isize; 3], 0).unwrap()
-}
-
 fn recurse(input: &[isize], offset: usize, entries: &mut [isize], depth: usize) -> Option<isize> {
     (offset..input.len())
         .find_map(|offset| {
@@ -34,6 +17,23 @@ fn recurse(input: &[isize], offset: usize, entries: &mut [isize], depth: usize) 
             recurse(input, offset + 1, entries, depth + 1)
 
         })
+}
+
+#[aoc_generator(day1)]
+pub fn input_generator(input: &str) -> Vec<isize> {
+    input.lines()
+        .filter_map(|x| x.parse::<isize>().ok())
+        .collect()
+}
+
+#[aoc(day1, part1)]
+pub fn solve_part_one(input: &[isize]) -> isize {
+    recurse(input, 0, &mut [0isize; 2], 0).unwrap()
+}
+
+#[aoc(day1, part2)]
+pub fn solve_part_two(input: &[isize]) -> isize {
+    recurse(input, 0, &mut [0isize; 3], 0).unwrap()
 }
 
 #[cfg(test)]
