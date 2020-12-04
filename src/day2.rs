@@ -1,3 +1,7 @@
+use std::str::FromStr;
+
+use nom::{IResult, bytes::complete::tag, bytes::complete::take, character::complete::digit1, character::complete::space1, combinator::map_res, sequence::tuple};
+
 
 pub struct Rule {
     first: usize,
@@ -8,14 +12,18 @@ pub struct Rule {
 
 impl Rule {
 
-    pub fn from_line(line: &str) -> Self {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        let count_parts: Vec<&str> = parts[0].split('-').collect();
-        let first = count_parts[0].parse::<usize>().unwrap();
-        let second = count_parts[1].parse::<usize>().unwrap();
-        let character = parts[1].split(':').next().unwrap().chars().next().unwrap();
-        let password = parts[2].to_owned();
-        Rule { first, second, character, password }
+    pub fn from_line(input: &str) -> Self {
+        let result: IResult<&str, (usize, &str, usize, &str, char,  &str, &str)> = tuple((
+            map_res(digit1, FromStr::from_str),
+            tag("-"),
+            map_res(digit1, FromStr::from_str),
+            space1,
+            map_res(take(1u8), |s: &str| { s.chars().next().ok_or(nom::Err::Failure("Empty")) }),
+            tag(":"),
+            space1,
+        ))(input);
+        let (password, (first, _, second, _, character, _, _)) = result.unwrap();
+        Rule { first, second, character, password: password.to_owned() }
     }
 
     pub fn has_proper_character_count(&self) -> bool {
@@ -27,9 +35,7 @@ impl Rule {
         let first = self.password.chars().skip(self.first - 1).next();
         let second = self.password.chars().skip(self.second - 1).next();
         match (first, second) {
-            (Some(first), Some(second)) => {
-                (first == self.character || second == self.character) && first != second
-            },
+            (Some(first), Some(second)) => (first == self.character || second == self.character) && first != second,
             (Some(first), None) => first == self.character,
             _ => false
         }
