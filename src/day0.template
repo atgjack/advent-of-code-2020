@@ -1,0 +1,35 @@
+#[aoc_generator(day0)]
+pub fn input_generator(input: &str) -> ??? {
+    
+}
+
+#[aoc(day0, part1)]
+pub fn solve_part_one(input: &???) -> ??? {
+    todo!()
+}
+
+#[aoc(day0, part2)]
+pub fn solve_part_two(input: &???) -> ??? {
+    todo!()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use indoc::indoc;
+
+    const INPUT: &str = indoc! {""};
+
+    #[test]
+    fn it_solves_part_one() {
+        let input = input_generator(INPUT);
+        assert_eq!(solve_part_one(&input), ???);
+    }
+    
+    #[test]
+    fn it_solves_part_two() {
+        let input = input_generator(INPUT);
+        assert_eq!(solve_part_two(&input), ???);
+    }
+
+}
