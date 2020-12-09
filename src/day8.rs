@@ -2,11 +2,54 @@ use std::str::FromStr;
 
 use nom::{IResult, bytes::complete::take, character::complete::not_line_ending, character::complete::{line_ending, space1}, combinator::map_res, multi::many1, sequence::tuple};
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum OpCode {
     Nop(isize),
     Acc(isize),
     Jmp(isize)
+}
+
+enum State {
+    Terminal,
+    InfiniteLoop,
+}
+
+struct Machine<'a> {
+    program: &'a [OpCode],
+    ptr: usize,
+    acc: isize
+}
+
+impl <'a> Machine<'a> {
+
+    pub fn new(program: &'a [OpCode]) -> Self {
+        Machine { program, ptr: 0, acc: 0 }
+    }
+
+    fn step(&mut self) {
+        match self.program[self.ptr] {
+            OpCode::Nop(_) => {
+                self.ptr += 1;
+            },
+            OpCode::Acc(value) => {
+                self.acc += value;
+                self.ptr += 1;
+            }
+            OpCode::Jmp(value) => {
+                self.ptr = (self.ptr as isize + value) as usize
+            }
+        }
+    }
+
+    pub fn execute(&mut self) -> State {
+        let mut visited = Vec::new();
+        loop {
+            self.step();
+            if self.ptr >= self.program.len() { return State::Terminal }
+            if visited.contains(&self.ptr) { return State::InfiniteLoop }
+            visited.push(self.ptr)
+        }
+    }
 }
 
 fn parse_opcode(input: &str) -> IResult<&str, OpCode> {
@@ -30,30 +73,6 @@ pub fn input_generator(input: &str) -> Vec<OpCode> {
     many1(parse_opcode)(input).unwrap().1
 }
 
-pub fn execute(input: &[OpCode]) -> (isize, bool) {
-    let mut visited = Vec::new();
-    let mut acc = 0;
-    let mut ptr = 0;
-    loop {
-        let instr = &input[ptr];
-        match instr {
-            OpCode::Nop(_) => {
-                ptr += 1;
-            },
-            OpCode::Acc(value) => {
-                acc += value;
-                ptr += 1;
-            }
-            OpCode::Jmp(value) => {
-                ptr = (ptr as isize + value) as usize
-            }
-        }
-        if ptr >= input.len() { return (acc, true) }
-        if visited.contains(&ptr) { return (acc, false) }
-        visited.push(ptr)
-    }
-}
-
 pub fn find_permutations(input: &[OpCode]) -> Vec<(usize, OpCode)> {
     input.iter()
         .enumerate()
@@ -67,7 +86,9 @@ pub fn find_permutations(input: &[OpCode]) -> Vec<(usize, OpCode)> {
 
 #[aoc(day8, part1)]
 pub fn solve_part_one(input: &[OpCode]) -> isize {
-    execute(input).0
+    let mut machine = Machine::new(input);
+    machine.execute();
+    machine.acc
 }
 
 #[aoc(day8, part2)]
@@ -76,8 +97,9 @@ pub fn solve_part_two(input: &[OpCode]) -> isize {
     for (index, op) in find_permutations(&input) {
         let old_op = input[index];
         input[index] = op;
-        match execute(&input) {
-            (value, true) => { return value },
+        let mut machine = Machine::new(&input);
+        match machine.execute() {
+            State::Terminal => { return machine.acc },
             _ => {}
         }
         input[index] = old_op;
