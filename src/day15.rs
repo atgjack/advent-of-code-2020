@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::str::FromStr;
 
 #[aoc_generator(day15)]
 pub fn input_generator(input: &str) -> Vec<usize> {
@@ -9,17 +9,17 @@ pub fn input_generator(input: &str) -> Vec<usize> {
 }   
 
 fn find_nth_number(input: &[usize], n: usize) -> usize {
-    let mut hashmap = HashMap::new();
+    let mut storage = vec![None; n];
     for (index, &value) in input.iter().enumerate() {
-        hashmap.insert(value, index + 1);
+        storage[value] = Some(index + 1);
     }
     ((input.len() + 2)..(n + 1))
-        .scan((0, hashmap), |(current, hashmap), turn| {
-            let next = match hashmap.get(current) {
-                Some(&val) => (turn - 1) - val,
+        .scan(0, |current, turn| {
+            let next = match storage[*current] {
+                Some(val) => (turn - 1) - val,
                 None => 0 
             };
-            hashmap.insert(*current, turn - 1);
+            storage[*current] = Some(turn - 1);
             *current = next;
             Some(next)
         })
@@ -34,7 +34,7 @@ pub fn solve_part_one(input: &[usize]) -> usize {
 
 #[aoc(day15, part2)]
 pub fn solve_part_two(input: &[usize]) -> usize {
-    find_nth_number(input, 30000000)
+    find_nth_number(input,30_000_000)
 }
 
 #[cfg(test)]
